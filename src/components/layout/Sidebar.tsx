@@ -138,15 +138,21 @@ const Sidebar = ({ open, onClose, drawerWidth }: SidebarProps) => {
 
   return (
     <Drawer
-      variant="persistent"
+      variant="permanent"
       anchor="left"
       open={open}
       onClose={onClose}
       sx={{
-        width: drawerWidth,
+        width: open ? drawerWidth : 0,
         flexShrink: 0,
+        display: open ? 'block' : 'none',
+        transition: (theme) =>
+          theme.transitions.create(['width', 'display'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
         "& .MuiDrawer-paper": {
-          width: drawerWidth,
+          width: open ? drawerWidth : 0,
           boxSizing: "border-box",
           borderRight: "1px dashed",
           borderColor: "divider",
@@ -154,6 +160,13 @@ const Sidebar = ({ open, onClose, drawerWidth }: SidebarProps) => {
           marginTop: "70px",
           paddingX: 2,
           paddingTop: 2,
+          transition: (theme) =>
+            theme.transitions.create(['width', 'display'], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+          overflowX: "hidden",
+          display: open ? 'block' : 'none',
         },
       }}
     >

@@ -4,11 +4,11 @@ import DashboardContent from "@/components/dashboard/DashboardContent";
 
 const Dashboard = () => {
   return (
-    <Box sx={{ width: "100%", backgroundColor: "red" }}>
+    <Box sx={{ width: "100%" }}>
       <Typography
         variant="h4"
         sx={{
-          mb: 5,
+          mb: 3,
           fontWeight: 700,
           color: "text.primary",
         }}

@@ -5,7 +5,7 @@ import StatCard from "../common/StatCard";
 
 const StatsOverview = () => {
   return (
-    <Grid container spacing={3} sx={{ mb: 4, width: "100%" }}>
+    <Grid container spacing={3} sx={{ mb: 3, width: "100%" }}>
       <Grid
         component="div"
         {...({ item: true, xs: 12, sm: 6, md: 3, flex: 1 } as GridProps)}
