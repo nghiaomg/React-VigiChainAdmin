@@ -7,6 +7,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { Outlet } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import TagsPage from './pages/Tags';
+import CategoriesPage from '@/pages/Categories';
 
 
 const RootLayout = () => {
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
           {
             path: 'tags',
             element: <TagsPage />,
+          },
+          {
+            path: 'categories',
+            element: <CategoriesPage />,
           },
         ],
       },

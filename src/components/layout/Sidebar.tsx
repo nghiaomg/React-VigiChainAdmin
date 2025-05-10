@@ -12,13 +12,8 @@ import {
 import {
   Dashboard,
   People,
-  Settings,
-  Assessment,
-  Security,
   ExpandLess,
   ExpandMore,
-  Folder,
-  Article,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
@@ -38,6 +33,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { text: "Dashboard", icon: <Dashboard />, path: "/" },
+  { text: "Categories", icon: <People />, path: "/categories" },
   { text: "Wallets", icon: <People />, path: "/wallets" },
   { text: "Tags", icon: <People />, path: "/tags" },
 ];
