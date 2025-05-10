@@ -10,7 +10,6 @@ interface PaginationData {
 }
 
 interface WalletsContextType {
-  // State
   wallets: Wallet[];
   filteredWallets: Wallet[];
   selectedWallet: Wallet | null;

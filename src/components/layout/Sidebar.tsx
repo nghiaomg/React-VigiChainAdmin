@@ -39,24 +39,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { text: "Dashboard", icon: <Dashboard />, path: "/" },
   { text: "Wallets", icon: <People />, path: "/wallets" },
-  {
-    text: "Reports",
-    icon: <Assessment />,
-    children: [
-      { text: "Analytics", icon: <Article />, path: "/reports/analytics" },
-      { text: "Performance", icon: <Article />, path: "/reports/performance" },
-    ],
-  },
-  {
-    text: "Documents",
-    icon: <Folder />,
-    children: [
-      { text: "Contracts", icon: <Article />, path: "/documents/contracts" },
-      { text: "Proposals", icon: <Article />, path: "/documents/proposals" },
-    ],
-  },
-  { text: "Security", icon: <Security />, path: "/security" },
-  { text: "Settings", icon: <Settings />, path: "/settings" },
+  { text: "Tags", icon: <People />, path: "/tags" },
 ];
 
 const Sidebar = ({ open, onClose, drawerWidth }: SidebarProps) => {

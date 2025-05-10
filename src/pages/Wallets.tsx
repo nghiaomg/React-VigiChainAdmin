@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import Wallets from '@/components/wallets';
+import { WalletsProvider } from '@/contexts/WalletsContext';
 
 const WalletsPage = () => {
   useEffect(() => {
@@ -7,7 +8,9 @@ const WalletsPage = () => {
   }, []);
 
   return (
+    <WalletsProvider>
       <Wallets />
+    </WalletsProvider>
   );
 };
 

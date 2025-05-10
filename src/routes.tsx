@@ -6,6 +6,8 @@ import WalletsPage from './components/wallets';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { Outlet } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import TagsPage from './pages/Tags';
+
 
 const RootLayout = () => {
   return (
@@ -40,6 +42,10 @@ const router = createBrowserRouter([
           {
             path: 'wallets',
             element: <WalletsPage />,
+          },
+          {
+            path: 'tags',
+            element: <TagsPage />,
           },
         ],
       },
