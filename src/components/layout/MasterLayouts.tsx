@@ -9,7 +9,7 @@ interface MasterLayoutProps {
 
 const drawerWidth = 280;
 
-const MasterLayout = ({ children }: MasterLayoutProps) => {
+const MasterLayouts = ({ children }: MasterLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const theme = useMemo(
@@ -107,4 +107,4 @@ const MasterLayout = ({ children }: MasterLayoutProps) => {
   );
 };
 
-export default MasterLayout;
+export default MasterLayouts;
