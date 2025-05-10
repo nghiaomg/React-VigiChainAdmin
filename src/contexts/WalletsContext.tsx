@@ -2,6 +2,13 @@ import React, { createContext, useContext, useEffect, type ReactNode } from 'rea
 import useWalletsStore from '@/stores/walletsStore';
 import type { Wallet, WalletAnalysisResult, Tag } from '@/stores/walletsStore';
 
+interface PaginationData {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
 interface WalletsContextType {
   // State
   wallets: Wallet[];
@@ -13,9 +20,10 @@ interface WalletsContextType {
   error: string | null;
   searchTerm: string;
   riskLevel: 'all' | 'low' | 'medium' | 'high';
+  pagination: PaginationData;
   
   // Actions
-  fetchWallets: () => Promise<void>;
+  fetchWallets: (page?: number, limit?: number) => Promise<void>;
   getWalletDetails: (id: string) => Promise<void>;
   analyzeWallet: (id: string) => Promise<void>;
   blockWallet: (id: string) => Promise<void>;
@@ -30,7 +38,7 @@ const WalletsContext = createContext<WalletsContextType | undefined>(undefined);
 
 export const useWallets = () => {
   const context = useContext(WalletsContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useWallets must be used within a WalletsProvider');
   }
   return context;
@@ -52,6 +60,7 @@ export const WalletsProvider: React.FC<WalletsProviderProps> = ({ children }) =>
     error,
     searchTerm,
     riskLevel,
+    pagination,
     fetchWallets,
     getWalletDetails,
     analyzeWallet,
@@ -80,6 +89,7 @@ export const WalletsProvider: React.FC<WalletsProviderProps> = ({ children }) =>
     error,
     searchTerm,
     riskLevel,
+    pagination,
     fetchWallets,
     getWalletDetails,
     analyzeWallet,

@@ -110,19 +110,28 @@ const useWalletsStore = create<WalletsState>((set, get) => ({
       set({ isLoading: true, error: null });
       const response = await api.get(`/v1/wallets?page=${page}&limit=${limit}`);
       
-      const { data, pagination } = response.data.data;
-      const wallets = data || [];
-      
-      set({ 
-        wallets, 
-        filteredWallets: wallets,
-        pagination,
-        isLoading: false
-      });
+      if (response.data?.data) {
+        const { data, pagination } = response.data.data;
+        const wallets = data || [];
+        
+        set({ 
+          wallets, 
+          filteredWallets: wallets,
+          pagination: {
+            total: pagination?.total || 0,
+            page: pagination?.page || page,
+            limit: pagination?.limit || limit,
+            pages: pagination?.pages || Math.ceil((pagination?.total || 0) / limit)
+          },
+          isLoading: false
+        });
 
-      // Apply existing filters
-      get().setSearchTerm(get().searchTerm);
-      get().setRiskLevel(get().riskLevel);
+        // Apply existing filters
+        get().setSearchTerm(get().searchTerm);
+        get().setRiskLevel(get().riskLevel);
+      } else {
+        throw new Error('Invalid response format');
+      }
       
     } catch (error: any) {
       set({ 
@@ -136,7 +145,7 @@ const useWalletsStore = create<WalletsState>((set, get) => ({
   // Get details for a specific wallet
   getWalletDetails: async (id: string) => {
     try {
-      set({ isLoading: true, error: null });
+      // set({ isLoading: true, error: null });
       const response = await api.get(`/v1/wallets/${id}`);
       set({ 
         selectedWallet: response.data.data,
