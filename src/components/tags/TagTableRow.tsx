@@ -33,8 +33,8 @@ const TagTableRow = ({ tag, onViewDetails, onDelete }: TagTableRowProps) => {
     setAnchorEl(null);
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
+  const getCategoryColor = (type: string) => {
+    switch (type) {
       case "positive":
         return "success";
       case "negative":
@@ -63,9 +63,17 @@ const TagTableRow = ({ tag, onViewDetails, onDelete }: TagTableRowProps) => {
       <TableCell>{tag.description}</TableCell>
       <TableCell>
         <Chip
-          label={tag.category}
-          color={getCategoryColor(tag.category) as any}
+          label={tag.category.name}
+          color={getCategoryColor(tag.category.type) as any}
           size="small"
+        />
+      </TableCell>
+      <TableCell>
+        <Chip
+          label={tag.isActive ? "Active" : "Inactive"}
+          color={tag.isActive ? "success" : "default"}
+          size="small"
+          variant="outlined"
         />
       </TableCell>
       <TableCell>

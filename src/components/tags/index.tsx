@@ -13,12 +13,13 @@ import type { Tag } from "@/types/tag";
 const TagsPage = () => {
   const { wallet: adminWallet } = useAuthStore();
   const {
-    tags,
     fetchTags,
     getTagById,
     deleteTag,
     pagination,
     selectedTag,
+    setActionMenuAnchor: setContextActionMenuAnchor,
+    setSelectedTagId: setContextSelectedTagId,
   } = useTags();
 
   const [page, setPage] = useState(0);
@@ -32,6 +33,15 @@ const TagsPage = () => {
   useEffect(() => {
     fetchTags(page + 1, rowsPerPage);
   }, [page, rowsPerPage, fetchTags]);
+
+  // Keep local and context state in sync
+  useEffect(() => {
+    setContextActionMenuAnchor(actionMenuAnchor);
+  }, [actionMenuAnchor, setContextActionMenuAnchor]);
+
+  useEffect(() => {
+    setContextSelectedTagId(selectedTagId);
+  }, [selectedTagId, setContextSelectedTagId]);
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
@@ -144,9 +154,10 @@ const TagsPage = () => {
         <TagTable
           page={page}
           rowsPerPage={rowsPerPage}
-          totalCount={pagination.total}
+          totalCount={pagination?.total || 0}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          onEdit={handleEditTag}
         />
       </Card>
 

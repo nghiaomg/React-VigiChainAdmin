@@ -13,7 +13,6 @@ import type { Category } from "@/types/category";
 const CategoriesPage = () => {
   const { wallet: adminWallet } = useAuthStore();
   const {
-    categories,
     fetchCategories,
     getCategoryById,
     deleteCategory,

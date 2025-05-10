@@ -72,18 +72,20 @@ const useCategoriesStore = create<CategoriesState>((set, get) => ({
       const { filters } = get();
       set({ isLoading: true, error: null });
 
-      // Build query parameters
-      const queryParams = new URLSearchParams();
-      queryParams.append('page', page.toString());
-      queryParams.append('limit', limit.toString());
+      // Build params object
+      const params: Record<string, any> = { 
+        page, 
+        limit 
+      };
       
-      if (filters.name) queryParams.append('name', filters.name);
-      if (filters.type) queryParams.append('type', filters.type);
-      if (filters.isActive !== null) queryParams.append('isActive', filters.isActive.toString());
-      if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
-      if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
+      // Add filter parameters if they exist
+      if (filters.name) params.name = filters.name;
+      if (filters.type) params.type = filters.type;
+      if (filters.isActive !== null) params.isActive = filters.isActive;
+      if (filters.sortBy) params.sortBy = filters.sortBy;
+      if (filters.sortOrder) params.sortOrder = filters.sortOrder;
 
-      const response = await api.get(`/v1/categories?${queryParams.toString()}`);
+      const response = await api.get('/v1/categories', { params });
       
       if (response.data?.data) {
         const { data, pagination } = response.data.data;

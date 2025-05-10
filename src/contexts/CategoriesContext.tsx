@@ -11,7 +11,6 @@ interface CategoryFilters {
 }
 
 interface CategoriesContextType {
-  // State
   categories: Category[];
   selectedCategory: Category | null;
   isLoading: boolean;

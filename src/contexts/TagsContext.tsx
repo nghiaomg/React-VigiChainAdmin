@@ -26,8 +26,8 @@ interface TagsContextType {
   fetchTags: (page: number, limit: number) => Promise<void>;
   getTagById: (id: string) => Promise<void>;
   getTagByName: (name: string) => Promise<void>;
-  createTag: (data: Omit<Tag, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateTag: (id: string, data: Partial<Omit<Tag, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
+  createTag: (data: Omit<Tag, 'id' | 'createdAt' | 'updatedAt' | 'category'>) => Promise<void>;
+  updateTag: (id: string, data: Partial<Omit<Tag, 'id' | 'createdAt' | 'updatedAt' | 'category'>>) => Promise<void>;
   deleteTag: (id: string) => Promise<void>;
   getTagsByCategory: (category: 'positive' | 'negative' | 'neutral') => Promise<void>;
   getMultipleTags: (tagIds: string[]) => Promise<void>;
@@ -78,16 +78,19 @@ export const TagsProvider: React.FC<TagsProviderProps> = ({ children }) => {
   const [actionMenuAnchor, setActionMenuAnchor] = useState<HTMLElement | null>(null);
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
 
-  // Fetch tags on initial load
   useEffect(() => {
+    console.log('fetching tags');
     fetchTags(1, 10).catch((err: unknown) => {
       console.error('Failed to fetch tags:', err);
     });
   }, [fetchTags]);
 
+  // Ensure we have pagination data with safe defaults
   const paginationWithPages = {
-    ...pagination,
-    pages: Math.ceil(pagination.total / pagination.limit) || 1
+    total: pagination?.total || 0,
+    page: pagination?.page || 1,
+    limit: pagination?.limit || 10,
+    pages: pagination?.total ? Math.ceil(pagination.total / (pagination?.limit || 10)) : 0
   };
 
   const value: TagsContextType = {

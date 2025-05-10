@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import Tags from '@/components/tags/index';
 import { TagsProvider } from '@/contexts/TagsContext';
+import { CategoriesProvider } from '@/contexts/CategoriesContext';
   
 const TagsPage = () => {
   useEffect(() => {
@@ -9,7 +10,9 @@ const TagsPage = () => {
 
   return (
     <TagsProvider>
-      <Tags />
+      <CategoriesProvider>
+        <Tags />
+      </CategoriesProvider>
     </TagsProvider>
   );
 };

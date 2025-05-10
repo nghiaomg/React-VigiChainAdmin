@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
 import { Box, Typography, Card, Button, Divider } from "@mui/material";
-import { FilterList, Add } from "@mui/icons-material";
+import { FilterList } from "@mui/icons-material";
 import { useAuthStore } from "@/stores";
 import { useWallets } from "@/contexts/WalletsContext";
-import WalletFilters from "./WalletFilters";
-import WalletTable from "./WalletTable";
-import WalletActionMenu from "./WalletActionMenu";
+import WalletFilters from "@/components/wallets/WalletFilters";
+import WalletTable from "@/components/wallets/WalletTable";
+import WalletActionMenu from "@/components/wallets/WalletActionMenu";
 
 const WalletsPage = () => {
   const { wallet: adminWallet } = useAuthStore();
   const {
-    filteredWallets,
     fetchWallets,
     getWalletDetails,
     blockWallet,

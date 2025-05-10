@@ -11,7 +11,9 @@ import {
 } from "@mui/material";
 import {
   Dashboard,
-  People,
+  Category,
+  AccountBalanceWallet,
+  LocalOffer,
   ExpandLess,
   ExpandMore,
 } from "@mui/icons-material";
@@ -33,10 +35,10 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { text: "Dashboard", icon: <Dashboard />, path: "/" },
-  { text: "Categories", icon: <People />, path: "/categories" },
-  { text: "Wallets", icon: <People />, path: "/wallets" },
-  { text: "Tags", icon: <People />, path: "/tags" },
-];
+  { text: "Categories", icon: <Category />, path: "/categories" },
+  { text: "Wallets", icon: <AccountBalanceWallet />, path: "/wallets" },
+  { text: "Tags", icon: <LocalOffer />, path: "/tags" },
+];;
 
 const Sidebar = ({ open, onClose, drawerWidth }: SidebarProps) => {
   const navigate = useNavigate();

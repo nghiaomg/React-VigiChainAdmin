@@ -9,10 +9,13 @@ import {
   Stack,
   Box,
   FormHelperText,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useTags } from "@/contexts/TagsContext";
 import type { Tag } from "@/types/tag";
+import { useCategories } from "@/contexts/CategoriesContext"; 
 
 interface TagFormModalProps {
   open: boolean;
@@ -23,18 +26,24 @@ interface TagFormModalProps {
 interface FormErrors {
   name?: string;
   description?: string;
-  category?: string;
+  categoryId?: string;
+  value?: string;
+  type?: string;
 }
 
 const TagFormModal = ({ open, onClose, editTag }: TagFormModalProps) => {
   const { createTag, updateTag } = useTags();
+  const { categories } = useCategories();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    category: "neutral" as "positive" | "negative" | "neutral",
+    categoryId: "",
+    value: "",
+    type: "standard",
+    isActive: true
   });
 
   useEffect(() => {
@@ -42,13 +51,19 @@ const TagFormModal = ({ open, onClose, editTag }: TagFormModalProps) => {
       setFormData({
         name: editTag.name,
         description: editTag.description,
-        category: editTag.category,
+        categoryId: editTag.categoryId || "",
+        value: editTag.value || "",
+        type: editTag.type || "standard",
+        isActive: editTag.isActive
       });
     } else {
       setFormData({
         name: "",
         description: "",
-        category: "neutral" as "positive" | "negative" | "neutral",
+        categoryId: "",
+        value: "",
+        type: "standard",
+        isActive: true
       });
     }
     setErrors({});
@@ -69,6 +84,13 @@ const TagFormModal = ({ open, onClose, editTag }: TagFormModalProps) => {
     }
   };
 
+  const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      isActive: e.target.checked
+    }));
+  };
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     
@@ -80,8 +102,16 @@ const TagFormModal = ({ open, onClose, editTag }: TagFormModalProps) => {
       newErrors.description = "Description is required";
     }
     
-    if (!formData.category) {
-      newErrors.category = "Category is required";
+    if (!formData.categoryId) {
+      newErrors.categoryId = "Category is required";
+    }
+
+    if (!formData.value.trim()) {
+      newErrors.value = "Value is required";
+    }
+    
+    if (!formData.type) {
+      newErrors.type = "Type is required";
     }
     
     setErrors(newErrors);
@@ -144,19 +174,61 @@ const TagFormModal = ({ open, onClose, editTag }: TagFormModalProps) => {
               select
               fullWidth
               label="Category"
-              name="category"
-              value={formData.category}
+              name="categoryId"
+              value={formData.categoryId}
               onChange={handleChange}
-              error={!!errors.category}
+              error={!!errors.categoryId}
               disabled={loading}
             >
-              <MenuItem value="positive">Positive</MenuItem>
-              <MenuItem value="negative">Negative</MenuItem>
-              <MenuItem value="neutral">Neutral</MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
             </TextField>
-            {errors.category && (
-              <FormHelperText error>{errors.category}</FormHelperText>
+            {errors.categoryId && (
+              <FormHelperText error>{errors.categoryId}</FormHelperText>
             )}
+
+            <TextField
+              fullWidth
+              label="Value"
+              name="value"
+              value={formData.value}
+              onChange={handleChange}
+              error={!!errors.value}
+              helperText={errors.value || "The value associated with this tag"}
+              disabled={loading}
+            />
+
+            <TextField
+              select
+              fullWidth
+              label="Type"
+              name="type"
+              value={formData.type}
+              onChange={handleChange}
+              error={!!errors.type}
+              helperText={errors.type}
+              disabled={loading}
+            >
+              <MenuItem value="standard">Standard</MenuItem>
+              <MenuItem value="custom">Custom</MenuItem>
+              <MenuItem value="system">System</MenuItem>
+            </TextField>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.isActive}
+                  onChange={handleSwitchChange}
+                  name="isActive"
+                  color="success"
+                  disabled={loading}
+                />
+              }
+              label="Active"
+            />
           </Stack>
         </Box>
       </DialogContent>

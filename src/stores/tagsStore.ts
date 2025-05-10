@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import api from '@/utils/axios';
+import { create } from "zustand";
+import api from "@/utils/axios";
 import type { Tag } from "@/types/tag";
 
 export interface PaginationData {
@@ -25,22 +25,33 @@ interface TagsState {
   selectedTag: Tag | null;
   actionMenuAnchor: HTMLElement | null;
   selectedTagId: string | null;
-  category: 'positive' | 'negative' | 'neutral' | 'all';
-  
+  category: "positive" | "negative" | "neutral" | "all";
+
   // Actions
   fetchTags: (page: number, limit: number) => Promise<void>;
   getTagById: (id: string) => Promise<void>;
   getTagByName: (name: string) => Promise<void>;
-  createTag: (data: Omit<Tag, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateTag: (id: string, data: Partial<Omit<Tag, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
+  createTag: (
+    data: Omit<Tag, "id" | "createdAt" | "updatedAt" | "category">
+  ) => Promise<void>;
+  updateTag: (
+    id: string,
+    data: Partial<Omit<Tag, "id" | "createdAt" | "updatedAt" | "category">>
+  ) => Promise<void>;
   deleteTag: (id: string) => Promise<void>;
-  getTagsByCategory: (category: 'positive' | 'negative' | 'neutral') => Promise<void>;
+  getTagsByCategory: (
+    category: "positive" | "negative" | "neutral"
+  ) => Promise<void>;
   getMultipleTags: (tagIds: string[]) => Promise<void>;
-  setCategory: (category: 'positive' | 'negative' | 'neutral' | 'all') => void;
+  setCategory: (category: "positive" | "negative" | "neutral" | "all") => void;
   setTags: (tags: Tag[]) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  setPagination: (pagination: { total: number; page: number; limit: number }) => void;
+  setPagination: (pagination: {
+    total: number;
+    page: number;
+    limit: number;
+  }) => void;
   setFilters: (filters: { category: string; search: string }) => void;
   setSelectedTag: (tag: Tag | null) => void;
   setActionMenuAnchor: (anchor: HTMLElement | null) => void;
@@ -63,7 +74,7 @@ const useTagsStore = create<TagsState>((set, get) => ({
   selectedTag: null,
   actionMenuAnchor: null,
   selectedTagId: null,
-  category: 'all',
+  category: "all",
 
   setTags: (tags) => set({ tags }),
   setLoading: (isLoading) => set({ isLoading }),
@@ -77,11 +88,39 @@ const useTagsStore = create<TagsState>((set, get) => ({
   fetchTags: async (page: number, limit: number) => {
     try {
       set({ isLoading: true, error: null });
-      // TODO: Implement API call to fetch tags
-      // const response = await api.getTags(page, limit, get().filters);
-      // set({ tags: response.data, pagination: response.pagination });
+
+      // Build params object
+      const params: Record<string, any> = { page, limit };
+
+      if (get().category !== "all") {
+        params.category = get().category;
+      }
+
+      if (get().filters.search) {
+        params.search = get().filters.search;
+      }
+
+      const response = await api.get("/v1/tags", { params });
+
+      if (response.data?.data) {
+        set({
+          tags: response.data.data.data || [],
+          pagination: {
+            total: response.data.data.pagination?.total || 0,
+            page: response.data.data.pagination?.page || page,
+            limit: response.data.data.pagination?.limit || limit,
+          },
+        });
+      } else {
+        set({
+          tags: [],
+          pagination: { total: 0, page, limit },
+        });
+      }
     } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Failed to fetch tags" });
+      set({
+        error: error instanceof Error ? error.message : "Failed to fetch tags",
+      });
     } finally {
       set({ isLoading: false });
     }
@@ -90,58 +129,69 @@ const useTagsStore = create<TagsState>((set, get) => ({
   getTagById: async (id: string) => {
     try {
       set({ isLoading: true, error: null });
-      // TODO: Implement API call to get tag by id
-      // const response = await api.getTagById(id);
-      // set({ selectedTag: response.data });
-    } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Failed to get tag" });
-    } finally {
-      set({ isLoading: false });
+      const response = await api.get(`/v1/tags/${id}`);
+      set({
+        selectedTag: response.data.data,
+        isLoading: false,
+      });
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to get tag details",
+      });
+      throw error;
     }
   },
 
   getTagByName: async (name: string) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await api.get(`/v1/tags/name/${name}`);
-      set({ 
+      const response = await api.get("/v1/tags/name", {
+        params: { name },
+      });
+      set({
         selectedTag: response.data.data,
-        isLoading: false 
+        isLoading: false,
       });
     } catch (error: any) {
-      set({ 
-        isLoading: false, 
-        error: error.response?.data?.message || 'Failed to get tag' 
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to get tag",
       });
       throw error;
     }
   },
 
-  createTag: async (data: Omit<Tag, 'id' | 'createdAt' | 'updatedAt'>) => {
+  createTag: async (
+    data: Omit<Tag, "id" | "createdAt" | "updatedAt" | "category">
+  ) => {
     try {
       set({ isLoading: true, error: null });
-      await api.post('/v1/tags', data);
+      await api.post("/v1/tags", data);
       await get().fetchTags(1, get().pagination.limit);
       set({ isLoading: false });
     } catch (error: any) {
-      set({ 
-        isLoading: false, 
-        error: error.response?.data?.message || 'Failed to create tag' 
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to create tag",
       });
       throw error;
     }
   },
 
-  updateTag: async (id: string, data: Partial<Omit<Tag, 'id' | 'createdAt' | 'updatedAt'>>) => {
+  updateTag: async (
+    id: string,
+    data: Partial<Omit<Tag, "id" | "createdAt" | "updatedAt" | "category">>
+  ) => {
     try {
       set({ isLoading: true, error: null });
       await api.put(`/v1/tags/${id}`, data);
       await get().fetchTags(1, get().pagination.limit);
       set({ isLoading: false });
     } catch (error: any) {
-      set({ 
-        isLoading: false, 
-        error: error.response?.data?.message || 'Failed to update tag' 
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to update tag",
       });
       throw error;
     }
@@ -149,31 +199,37 @@ const useTagsStore = create<TagsState>((set, get) => ({
 
   deleteTag: async (id: string) => {
     try {
-      set({ isLoading: true, error: null });
-      // TODO: Implement API call to delete tag
-      // await api.deleteTag(id);
-      set((state) => ({
-        tags: state.tags.filter((tag) => tag.id !== id),
-      }));
-    } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Failed to delete tag" });
+      // set({ isLoading: true, error: null });
+
+      await api.delete(`/v1/tags/${id}`);
+
+      await get().fetchTags(get().pagination.page, get().pagination.limit);
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to delete tag",
+      });
+      throw error;
     } finally {
       set({ isLoading: false });
     }
   },
 
-  getTagsByCategory: async (category: 'positive' | 'negative' | 'neutral') => {
+  getTagsByCategory: async (category: "positive" | "negative" | "neutral") => {
     try {
       set({ isLoading: true, error: null });
-      const response = await api.get(`/v1/tags/category/${category}`);
-      set({ 
+      const response = await api.get("/v1/tags/category", {
+        params: { category },
+      });
+      set({
         tags: response.data.data || [],
-        isLoading: false 
+        isLoading: false,
       });
     } catch (error: any) {
-      set({ 
-        isLoading: false, 
-        error: error.response?.data?.message || 'Failed to get tags by category' 
+      set({
+        isLoading: false,
+        error:
+          error.response?.data?.message || "Failed to get tags by category",
       });
       throw error;
     }
@@ -182,24 +238,24 @@ const useTagsStore = create<TagsState>((set, get) => ({
   getMultipleTags: async (tagIds: string[]) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await api.post('/v1/tags/multiple', { tagIds });
-      set({ 
+      const response = await api.post("/v1/tags/multiple", { tagIds });
+      set({
         tags: response.data.data || [],
-        isLoading: false 
+        isLoading: false,
       });
     } catch (error: any) {
-      set({ 
-        isLoading: false, 
-        error: error.response?.data?.message || 'Failed to get multiple tags' 
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to get multiple tags",
       });
       throw error;
     }
   },
 
-  setCategory: (category: 'positive' | 'negative' | 'neutral' | 'all') => {
+  setCategory: (category: "positive" | "negative" | "neutral" | "all") => {
     set({ category });
     get().fetchTags(1, get().pagination.limit);
-  }
+  },
 }));
 
-export default useTagsStore; 
+export default useTagsStore;

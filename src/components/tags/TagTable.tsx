@@ -11,9 +11,11 @@ import {
   Box,
   Typography,
   Alert,
+  Tooltip,
 } from "@mui/material";
-import { MoreVert } from "@mui/icons-material";
+import { MoreVert, Delete, Edit } from "@mui/icons-material";
 import { useTags } from "@/contexts/TagsContext";
+import { useAuthStore } from "@/stores";
 
 interface TagTableProps {
   page: number;
@@ -21,6 +23,7 @@ interface TagTableProps {
   totalCount: number;
   onPageChange: (event: unknown, newPage: number) => void;
   onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onEdit?: (id: string) => void;
 }
 
 const TagTable = ({
@@ -29,12 +32,34 @@ const TagTable = ({
   totalCount,
   onPageChange,
   onRowsPerPageChange,
+  onEdit,
 }: TagTableProps) => {
-  const { tags, isLoading, error, setActionMenuAnchor, setSelectedTagId } = useTags();
+  const { wallet: adminWallet } = useAuthStore();
+  const { tags, isLoading, error, setActionMenuAnchor, setSelectedTagId, deleteTag } = useTags();
+
+  const isAdmin = adminWallet?.role === "admin";
 
   const handleOpenActionMenu = (event: React.MouseEvent<HTMLElement>, id: string) => {
     setActionMenuAnchor(event.currentTarget);
     setSelectedTagId(id);
+  };
+
+  const handleDelete = async (id: string, event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this tag?")) {
+      try {
+        await deleteTag(id);
+      } catch (error) {
+        console.error("Failed to delete tag:", error);
+      }
+    }
+  };
+
+  const handleEdit = (id: string, event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    if (onEdit) {
+      onEdit(id);
+    }
   };
 
   const getCategoryColor = (category: string) => {
@@ -78,6 +103,7 @@ const TagTable = ({
               <TableCell>Name</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Category</TableCell>
+              <TableCell>Status</TableCell>
               <TableCell>Created At</TableCell>
               <TableCell>Updated At</TableCell>
               <TableCell align="right">Actions</TableCell>
@@ -86,13 +112,13 @@ const TagTable = ({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   <Typography>Loading...</Typography>
                 </TableCell>
               </TableRow>
             ) : tags.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   <Typography>No tags found</Typography>
                 </TableCell>
               </TableRow>
@@ -109,9 +135,17 @@ const TagTable = ({
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={tag.category}
-                      color={getCategoryColor(tag.category) as any}
+                      label={tag.category.name}
+                      color={getCategoryColor(tag.category.type) as any}
                       size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={tag.isActive ? "Active" : "Inactive"}
+                      color={tag.isActive ? "success" : "default"}
+                      size="small"
+                      variant="outlined"
                     />
                   </TableCell>
                   <TableCell>
@@ -125,12 +159,38 @@ const TagTable = ({
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => handleOpenActionMenu(e, tag.id)}
-                    >
-                      <MoreVert />
-                    </IconButton>
+                    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                      {isAdmin && (
+                        <>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={(e) => handleEdit(tag.id, e)}
+                              sx={{ mr: 1 }}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={(e) => handleDelete(tag.id, e)}
+                              sx={{ mr: 1 }}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleOpenActionMenu(e, tag.id)}
+                      >
+                        <MoreVert />
+                      </IconButton>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))

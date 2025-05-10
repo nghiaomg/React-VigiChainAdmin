@@ -23,8 +23,8 @@ interface TagDetailsModalProps {
 const TagDetailsModal = ({ tag, open, onClose, onEdit }: TagDetailsModalProps) => {
   if (!tag) return null;
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
+  const getCategoryColor = (type: string) => {
+    switch (type) {
       case "positive":
         return "success";
       case "negative":
@@ -91,9 +91,21 @@ const TagDetailsModal = ({ tag, open, onClose, onEdit }: TagDetailsModalProps) =
                 Category
               </Typography>
               <Chip
-                label={tag.category}
-                color={getCategoryColor(tag.category) as any}
+                label={tag.category.name}
+                color={getCategoryColor(tag.category.type) as any}
                 size="small"
+              />
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Status
+              </Typography>
+              <Chip
+                label={tag.isActive ? "Active" : "Inactive"}
+                color={tag.isActive ? "success" : "default"}
+                size="small"
+                variant="outlined"
               />
             </Box>
 

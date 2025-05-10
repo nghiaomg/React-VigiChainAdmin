@@ -108,7 +108,9 @@ const useWalletsStore = create<WalletsState>((set, get) => ({
   fetchWallets: async (page = 1, limit = 10) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await api.get(`/v1/wallets?page=${page}&limit=${limit}`);
+      const response = await api.get('/v1/wallets', { 
+        params: { page, limit }
+      });
       
       if (response.data?.data) {
         const { data, pagination } = response.data.data;
@@ -145,7 +147,7 @@ const useWalletsStore = create<WalletsState>((set, get) => ({
   // Get details for a specific wallet
   getWalletDetails: async (id: string) => {
     try {
-      // set({ isLoading: true, error: null });
+      set({ isLoading: true, error: null });
       const response = await api.get(`/v1/wallets/${id}`);
       set({ 
         selectedWallet: response.data.data,
@@ -164,7 +166,9 @@ const useWalletsStore = create<WalletsState>((set, get) => ({
   getWalletByAddress: async (address: string) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await api.get(`/v1/wallets/address/${address}`);
+      const response = await api.get('/v1/wallets/address', { 
+        params: { address } 
+      });
       set({ 
         selectedWallet: response.data.data,
         isLoading: false 
@@ -182,7 +186,9 @@ const useWalletsStore = create<WalletsState>((set, get) => ({
   getWalletsByRole: async (role: string) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await api.get(`/v1/wallets/role/${role}`);
+      const response = await api.get('/v1/wallets/role', { 
+        params: { role } 
+      });
       const wallets = response.data.data || [];
       
       set({ 
@@ -204,7 +210,9 @@ const useWalletsStore = create<WalletsState>((set, get) => ({
   getWalletsByTag: async (tagId: string) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await api.get(`/v1/wallets/tag/${tagId}`);
+      const response = await api.get('/v1/wallets/tag', { 
+        params: { tagId } 
+      });
       const wallets = response.data.data || [];
       
       set({ 
