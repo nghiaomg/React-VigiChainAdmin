@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/stores';
 import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {

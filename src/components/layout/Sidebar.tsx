@@ -38,7 +38,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { text: "Dashboard", icon: <Dashboard />, path: "/" },
-  { text: "Users", icon: <People />, path: "/users" },
+  { text: "Wallets", icon: <People />, path: "/wallets" },
   {
     text: "Reports",
     icon: <Assessment />,

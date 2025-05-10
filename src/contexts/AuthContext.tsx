@@ -7,7 +7,7 @@ import {
   listenToChainChanges,
   getChainId,
 } from '../utils/metamask';
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/stores';
 import { ethers } from 'ethers';
 
 interface AuthContextType {

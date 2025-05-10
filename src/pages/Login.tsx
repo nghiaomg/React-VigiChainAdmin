@@ -13,7 +13,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LockIcon from '@mui/icons-material/Lock';
 import { useAuth } from '../contexts/AuthContext';
-import { useAuthStore } from '@/store';
+import { useAuthStore } from '@/stores';
 
 const Login: React.FC = () => {
   const { login, isLoading, error, account } = useAuth();

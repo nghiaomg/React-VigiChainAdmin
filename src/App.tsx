@@ -1,12 +1,15 @@
-import { Outlet } from 'react-router-dom';
-import MasterLayout from './components/layout/MasterLayouts';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import { RouterProvider } from 'react-router-dom';
+import router from './routes';
+import theme from './theme';
 
-const App = () => {
+function App() {
   return (
-    <MasterLayout>
-      <Outlet />
-    </MasterLayout>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <RouterProvider router={router} />
+    </ThemeProvider>
   );
-};
+}
 
 export default App;

@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import MasterLayouts from '@/components/layout/MasterLayouts';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import WalletsPage from './components/wallets';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { Outlet } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
           {
             path: 'dashboard',
             element: <Dashboard />,
+          },
+          {
+            path: 'wallets',
+            element: <WalletsPage />,
           },
         ],
       },

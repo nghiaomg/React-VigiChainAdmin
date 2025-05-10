@@ -5,12 +5,15 @@ import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import theme from './theme'
 import router from './routes'
+import { WalletsProvider } from './contexts/WalletsContext'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <RouterProvider router={router} />
+      <WalletsProvider>
+        <RouterProvider router={router} />
+      </WalletsProvider>
     </ThemeProvider>
   </React.StrictMode>,
 )
