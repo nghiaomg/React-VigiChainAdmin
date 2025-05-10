@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, IconButton, Typography, Box, Menu, MenuItem, Badge, Avatar, Tooltip } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Box, Menu, MenuItem, Badge, Avatar, Tooltip, Divider } from '@mui/material';
 import {
   Menu as MenuIcon,
   Notifications,
@@ -7,8 +7,12 @@ import {
   Settings,
   Logout,
   Person,
+  AccountBalanceWallet,
 } from '@mui/icons-material';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/store';
+import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -16,6 +20,9 @@ interface NavbarProps {
 
 const Navbar = ({ onMenuClick }: NavbarProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { account, logout } = useAuth();
+  const { wallet } = useAuthStore();
+  const navigate = useNavigate();
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -24,6 +31,18 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleLogout = () => {
+    setAnchorEl(null);
+    logout();
+    navigate('/login');
+  };
+
+  // Get first letter of the role for avatar
+  const avatarLetter = wallet?.role ? wallet.role.charAt(0).toUpperCase() : 'A';
+  
+  // Format wallet address for display
+  const formattedWallet = account ? `${account.slice(0, 6)}...${account.slice(-4)}` : '';
 
   return (
     <AppBar 
@@ -138,7 +157,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                   backgroundColor: 'primary.main',
                 }}
               >
-                A
+                {avatarLetter}
               </Avatar>
             </IconButton>
           </Tooltip>
@@ -160,19 +179,36 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
             sx={{
               '& .MuiPaper-root': {
                 borderRadius: 2,
-                minWidth: 180,
+                minWidth: 220,
                 boxShadow: 'rgb(145 158 171 / 24%) 0px 0px 2px 0px, rgb(145 158 171 / 24%) 0px 16px 32px -4px',
               },
             }}
           >
-            <Box sx={{ py: 1, px: 2 }}>
-              <Typography variant="subtitle1" noWrap>
-                Admin User
+            <Box sx={{ py: 1.5, px: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" noWrap>
+                {wallet?.role === 'admin' ? 'Administrator' : 'User'}
               </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-                admin@vigichain.com
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                <AccountBalanceWallet fontSize="small" color="primary" sx={{ mr: 1 }} />
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'monospace' }} noWrap>
+                  {formattedWallet}
+                </Typography>
+              </Box>
             </Box>
+            
+            <Divider />
+            
+            {wallet && (
+              <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1, mx: 1, my: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Reputation Score
+                </Typography>
+                <Typography variant="subtitle2" fontWeight="bold">
+                  {wallet.reputationScore}
+                </Typography>
+              </Box>
+            )}
+            
             <MenuItem onClick={handleClose} sx={{ py: 1.5 }}>
               <Person sx={{ mr: 2 }} /> Profile
             </MenuItem>
@@ -180,7 +216,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
               <Settings sx={{ mr: 2 }} /> Settings
             </MenuItem>
             <Box sx={{ borderTop: 1, borderColor: 'divider', mt: 1 }}>
-              <MenuItem onClick={handleClose} sx={{ py: 1.5, color: 'error.main' }}>
+              <MenuItem onClick={handleLogout} sx={{ py: 1.5, color: 'error.main' }}>
                 <Logout sx={{ mr: 2 }} /> Logout
               </MenuItem>
             </Box>

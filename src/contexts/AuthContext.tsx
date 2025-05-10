@@ -7,6 +7,8 @@ import {
   listenToChainChanges,
   getChainId,
 } from '../utils/metamask';
+import { useAuthStore } from '@/store';
+import { ethers } from 'ethers';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -34,20 +36,36 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [localLoading, setLocalLoading] = useState(true);
+  const [localError, setLocalError] = useState<string | null>(null);
 
-  const handleAccountsChanged = (accounts: string[]) => {
+  // Get state and actions from auth store
+  const { 
+    isAuthenticated,
+    isLoading: storeLoading,
+    error: storeError,
+    login: apiLogin,
+    fetchUserProfile,
+    logout: apiLogout
+  } = useAuthStore();
+
+  const isLoading = localLoading || storeLoading;
+  const error = localError || storeError;
+
+  const handleAccountsChanged = async (accounts: string[]) => {
     if (accounts.length === 0) {
       setAccount(null);
-      setIsAuthenticated(false);
+      apiLogout();
       navigate('/login');
     } else {
       setAccount(accounts[0]);
-      setIsAuthenticated(true);
+      try {
+        await fetchUserProfile();
+      } catch (err) {
+        navigate('/login');
+      }
     }
   };
 
@@ -58,32 +76,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const account = await checkIfWalletIsConnected();
-        const chainId = await getChainId();
+        const walletAccount = await checkIfWalletIsConnected();
+        const currentChainId = await getChainId();
 
-        if (account) {
-          setAccount(account);
-          setIsAuthenticated(true);
+        if (walletAccount) {
+          setAccount(walletAccount);
+          await fetchUserProfile();
         }
 
-        if (chainId) {
-          setChainId(chainId);
+        if (currentChainId) {
+          setChainId(currentChainId);
         }
 
-        // Setup listeners
         listenToAccountChanges(handleAccountsChanged);
         listenToChainChanges(handleChainChanged);
 
       } catch (err: any) {
-        setError(err.message || 'Failed to initialize authentication');
+        setLocalError(err.message || 'Failed to initialize authentication');
       } finally {
-        setIsLoading(false);
+        setLocalLoading(false);
       }
     };
 
     initializeAuth();
 
-    // Cleanup listeners on unmount
     return () => {
       const { ethereum } = window as any;
       if (ethereum) {
@@ -95,26 +111,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
+      setLocalLoading(true);
+      setLocalError(null);
 
-      const account = await connectWallet();
-      if (account) {
-        setAccount(account);
-        setIsAuthenticated(true);
-        navigate('/dashboard');
+      // Connect MetaMask
+      const walletAccount = await connectWallet();
+      if (walletAccount) {
+        setAccount(walletAccount);
+        
+        // Get provider and signer for authentication
+        const { ethereum } = window as any;
+        if (!ethereum) throw new Error('MetaMask is not installed');
+        
+        const provider = new ethers.BrowserProvider(ethereum);
+        const signer = await provider.getSigner();
+        
+        // Perform signature-based login
+        await apiLogin(signer);
+        
+        if (isAuthenticated) {
+          navigate('/dashboard');
+        }
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to connect wallet');
+      setLocalError(err.message || 'Failed to connect wallet');
       throw err;
     } finally {
-      setIsLoading(false);
+      setLocalLoading(false);
     }
   };
 
   const logout = () => {
     setAccount(null);
-    setIsAuthenticated(false);
+    apiLogout();
     navigate('/login');
   };
 
