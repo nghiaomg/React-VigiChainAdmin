@@ -8,7 +8,7 @@ import { Outlet } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import TagsPage from './pages/Tags';
 import CategoriesPage from '@/pages/Categories';
-
+import ReportsPage from '@/pages/Reports';
 
 const RootLayout = () => {
   return (
@@ -51,6 +51,10 @@ const router = createBrowserRouter([
           {
             path: 'categories',
             element: <CategoriesPage />,
+          },
+          {
+            path: 'reports',
+            element: <ReportsPage />,
           },
         ],
       },

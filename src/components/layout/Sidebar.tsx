@@ -16,6 +16,7 @@ import {
   LocalOffer,
   ExpandLess,
   ExpandMore,
+  Report,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
@@ -38,6 +39,7 @@ const menuItems: MenuItem[] = [
   { text: "Categories", icon: <Category />, path: "/categories" },
   { text: "Wallets", icon: <AccountBalanceWallet />, path: "/wallets" },
   { text: "Tags", icon: <LocalOffer />, path: "/tags" },
+  { text: "Reports", icon: <Report />, path: "/reports" },
 ];;
 
 const Sidebar = ({ open, onClose, drawerWidth }: SidebarProps) => {
