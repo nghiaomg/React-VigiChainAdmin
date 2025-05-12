@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
+import { FormControl, InputLabel, Select, MenuItem, Box, TextField } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import { useReports } from "@/contexts/ReportsContext";
 
@@ -8,15 +8,26 @@ const ReportFilters = () => {
   const [localStatus, setLocalStatus] = useState<"pending" | "approved" | "rejected" | "">(
     filters.status
   );
+  const [localTagId, setLocalTagId] = useState<string>(
+    filters.tagId || ""
+  );
 
   useEffect(() => {
     setLocalStatus(filters.status);
-  }, [filters.status]);
+    setLocalTagId(filters.tagId || "");
+  }, [filters.status, filters.tagId]);
 
   const handleStatusChange = (event: SelectChangeEvent) => {
     const value = event.target.value as "pending" | "approved" | "rejected" | "";
     setLocalStatus(value);
     setFilters({ ...filters, status: value });
+    fetchReports(1, 10);
+  };
+
+  const handleTagIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setLocalTagId(value);
+    setFilters({ ...filters, tagId: value || undefined });
     fetchReports(1, 10);
   };
 
@@ -37,6 +48,16 @@ const ReportFilters = () => {
           <MenuItem value="rejected">Rejected</MenuItem>
         </Select>
       </FormControl>
+
+      <TextField
+        variant="outlined"
+        size="small"
+        label="Tag ID"
+        value={localTagId}
+        onChange={handleTagIdChange}
+        placeholder="Filter by tag"
+        sx={{ minWidth: 200 }}
+      />
     </Box>
   );
 };

@@ -17,6 +17,7 @@ interface ReportsContextType {
   };
   filters: {
     status: "pending" | "approved" | "rejected" | "";
+    tagId?: string;
   };
   
   // Actions
@@ -29,14 +30,19 @@ interface ReportsContextType {
     description: string;
     evidence: string[];
     suggestedTags: string[];
+    tags?: string[];
     stakeAmount: number;
   }) => Promise<void>;
   getReportsByWalletAddress: (address: string) => Promise<void>;
   getReportsByReporterAddress: (address: string) => Promise<void>;
+  getReportsByTag: (tagId: string) => Promise<void>;
+  addTagToReport: (reportId: string, tagId: string) => Promise<void>;
+  removeTagFromReport: (reportId: string, tagId: string) => Promise<void>;
+  updateReportTags: (reportId: string, tags: string[]) => Promise<void>;
   verifyReport: (id: string, data: VerificationData) => Promise<void>;
   getReportStats: () => Promise<void>;
   deleteReport: (id: string) => Promise<void>;
-  setFilters: React.Dispatch<React.SetStateAction<{ status: "pending" | "approved" | "rejected" | "" }>>;
+  setFilters: React.Dispatch<React.SetStateAction<{ status: "pending" | "approved" | "rejected" | "", tagId?: string }>>;
 }
 
 const ReportsContext = createContext<ReportsContextType | undefined>(undefined);
@@ -67,12 +73,16 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
     createReport,
     getReportsByWalletAddress,
     getReportsByReporterAddress,
+    getReportsByTag,
+    addTagToReport,
+    removeTagFromReport,
+    updateReportTags,
     verifyReport,
     getReportStats,
     deleteReport,
   } = useReportsStore();
 
-  const [filters, setFilters] = useState<{ status: "pending" | "approved" | "rejected" | "" }>({
+  const [filters, setFilters] = useState<{ status: "pending" | "approved" | "rejected" | "", tagId?: string }>({
     status: "",
   });
 
@@ -104,6 +114,10 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
     createReport,
     getReportsByWalletAddress,
     getReportsByReporterAddress,
+    getReportsByTag,
+    addTagToReport,
+    removeTagFromReport,
+    updateReportTags,
     verifyReport,
     getReportStats,
     deleteReport,

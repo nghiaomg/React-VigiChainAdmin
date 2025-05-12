@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import Reports from '@/components/reports/index';
 import { ReportsProvider } from '@/contexts/ReportsContext';
+import { TagsProvider } from '@/contexts/TagsContext';
   
 const ReportsPage = () => {
   useEffect(() => {
@@ -9,7 +10,9 @@ const ReportsPage = () => {
 
   return (
     <ReportsProvider>
-      <Reports />
+      <TagsProvider>
+          <Reports />
+      </TagsProvider>
     </ReportsProvider>
   );
 };

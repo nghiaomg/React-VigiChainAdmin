@@ -12,8 +12,12 @@ import {
   Link,
   IconButton,
 } from "@mui/material";
-import { Check, ContentCopy } from "@mui/icons-material";
+import { Check, ContentCopy, Add } from "@mui/icons-material";
+import { useReports } from "@/contexts/ReportsContext";
+import { useTags } from "@/contexts/TagsContext";
+import { useState, useEffect } from "react";
 import type { Report } from "@/stores/reportsStore";
+import type { Tag } from "@/types/tag";
 
 interface ReportDetailsModalProps {
   report: Report | null;
@@ -23,6 +27,43 @@ interface ReportDetailsModalProps {
 }
 
 const ReportDetailsModal = ({ report, open, onClose, onVerify }: ReportDetailsModalProps) => {
+  const { addTagToReport, removeTagFromReport } = useReports();
+  const { tags: allTags, getMultipleTags } = useTags();
+  const [reportTags, setReportTags] = useState<Tag[]>([]);
+  const [suggestedTagsData, setSuggestedTagsData] = useState<Tag[]>([]);
+  
+  useEffect(() => {
+    if (report) {
+      if (report.tags && report.tags.length > 0) {
+        getMultipleTags(report.tags).catch(err => {
+          console.error("Failed to fetch report tags:", err);
+        });
+      }
+      
+      if (report.suggestedTags && report.suggestedTags.length > 0) {
+        getMultipleTags(report.suggestedTags).catch(err => {
+          console.error("Failed to fetch suggested tags:", err);
+        });
+      }
+    }
+  }, [report, getMultipleTags]);
+  
+  useEffect(() => {
+    if (report && allTags.length > 0) {
+      // Filter tags for this report
+      const matchingTags = allTags.filter(tag => 
+        report.tags && report.tags.includes(tag.id)
+      );
+      setReportTags(matchingTags);
+      
+      // Filter suggested tags
+      const matchingSuggested = allTags.filter(tag => 
+        report.suggestedTags && report.suggestedTags.includes(tag.id)
+      );
+      setSuggestedTagsData(matchingSuggested);
+    }
+  }, [report, allTags]);
+  
   if (!report) return null;
 
   const getStatusColor = (status: string) => {
@@ -53,6 +94,37 @@ const ReportDetailsModal = ({ report, open, onClose, onVerify }: ReportDetailsMo
     navigator.clipboard.writeText(text);
     // Ideally would show a snackbar/toast here
     alert("Copied to clipboard");
+  };
+  
+  const handleAddTag = (tagId: string) => {
+    if (report) {
+      addTagToReport(report.id, tagId).catch(error => {
+        console.error("Failed to add tag:", error);
+      });
+    }
+  };
+  
+  const handleRemoveTag = (tagId: string) => {
+    if (report) {
+      removeTagFromReport(report.id, tagId).catch(error => {
+        console.error("Failed to remove tag:", error);
+      });
+    }
+  };
+
+  const getTagColorByCategory = (category: any) => {
+    if (!category) return "default";
+    
+    switch (category.type) {
+      case "positive":
+        return "success";
+      case "negative":
+        return "error";
+      case "neutral":
+        return "warning";
+      default:
+        return "default";
+    }
   };
 
   return (
@@ -157,6 +229,64 @@ const ReportDetailsModal = ({ report, open, onClose, onVerify }: ReportDetailsMo
                 ))}
               </Stack>
             </Box>
+            
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Tags
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {reportTags.length > 0 ? (
+                  reportTags.map((tag) => (
+                    <Chip 
+                      key={tag.id} 
+                      label={tag.name}
+                      size="small"
+                      color={getTagColorByCategory(tag.category) as any}
+                      onDelete={() => handleRemoveTag(tag.id)}
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No tags assigned
+                  </Typography>
+                )}
+                <Button
+                  size="small"
+                  startIcon={<Add />}
+                  onClick={() => {
+                    // This would typically open a dialog to select a tag
+                    const tagId = prompt("Enter tag ID to add:");
+                    if (tagId) handleAddTag(tagId);
+                  }}
+                >
+                  Add Tag
+                </Button>
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Suggested Tags
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {suggestedTagsData.length > 0 ? (
+                  suggestedTagsData.map((tag) => (
+                    <Chip 
+                      key={tag.id} 
+                      label={tag.name}
+                      size="small"
+                      variant="outlined"
+                      color={getTagColorByCategory(tag.category) as any}
+                      onClick={() => handleAddTag(tag.id)}
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No suggested tags
+                  </Typography>
+                )}
+              </Box>
+            </Box>
 
             <Box>
               <Typography variant="subtitle2" color="text.secondary">
@@ -210,9 +340,17 @@ const ReportDetailsModal = ({ report, open, onClose, onVerify }: ReportDetailsMo
                       Assigned Tags
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                      {report.verificationResult.assignedTags.map((tag, index) => (
-                        <Chip key={index} label={tag} size="small" />
-                      ))}
+                      {report.verificationResult.assignedTags.map((tagId, index) => {
+                        const tag = allTags.find(t => t.id === tagId);
+                        return (
+                          <Chip 
+                            key={index} 
+                            label={tag ? tag.name : tagId} 
+                            size="small"
+                            color={tag ? getTagColorByCategory(tag.category) as any : "default"}
+                          />
+                        );
+                      })}
                     </Box>
                   </Box>
                 )}

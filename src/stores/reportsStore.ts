@@ -9,6 +9,7 @@ export interface Report {
   description: string;
   evidence: string[];
   suggestedTags: string[];
+  tags: string[];
   stakeAmount: number;
   status: "pending" | "approved" | "rejected";
   verificationResult?: {
@@ -49,6 +50,7 @@ interface CreateReportData {
   description: string;
   evidence: string[];
   suggestedTags: string[];
+  tags?: string[];
   stakeAmount: number;
 }
 
@@ -65,6 +67,7 @@ interface ReportsState {
   };
   filters: {
     status: "pending" | "approved" | "rejected" | "";
+    tagId?: string;
   };
 
   // Actions
@@ -73,6 +76,10 @@ interface ReportsState {
   createReport: (data: CreateReportData) => Promise<void>;
   getReportsByWalletAddress: (address: string) => Promise<void>;
   getReportsByReporterAddress: (address: string) => Promise<void>;
+  getReportsByTag: (tagId: string) => Promise<void>;
+  addTagToReport: (reportId: string, tagId: string) => Promise<void>;
+  removeTagFromReport: (reportId: string, tagId: string) => Promise<void>;
+  updateReportTags: (reportId: string, tags: string[]) => Promise<void>;
   verifyReport: (id: string, data: VerificationData) => Promise<void>;
   getReportStats: () => Promise<void>;
   deleteReport: (id: string) => Promise<void>;
@@ -86,7 +93,7 @@ interface ReportsState {
     page: number;
     limit: number;
   }) => void;
-  setFilters: (filters: { status: "pending" | "approved" | "rejected" | "" }) => void;
+  setFilters: (filters: { status: "pending" | "approved" | "rejected" | "", tagId?: string }) => void;
 }
 
 const useReportsStore = create<ReportsState>((set, get) => ({
@@ -121,6 +128,10 @@ const useReportsStore = create<ReportsState>((set, get) => ({
 
       if (get().filters.status) {
         params.status = get().filters.status;
+      }
+
+      if (get().filters.tagId) {
+        params.tagId = get().filters.tagId;
       }
 
       const response = await api.get("/v1/reports", { params });
@@ -210,6 +221,113 @@ const useReportsStore = create<ReportsState>((set, get) => ({
       set({
         isLoading: false,
         error: error.response?.data?.message || "Failed to get reporter's reports",
+      });
+      throw error;
+    }
+  },
+
+  getReportsByTag: async (tagId: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await api.get(`/v1/reports/tag/${tagId}`);
+      set({
+        reports: response.data.data || [],
+        isLoading: false,
+      });
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to get reports by tag",
+      });
+      throw error;
+    }
+  },
+
+  addTagToReport: async (reportId: string, tagId: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await api.post(`/v1/reports/${reportId}/tag`, { tagId });
+      
+      // Update the reports array if this report is in it
+      const reports = get().reports.map(report => 
+        report.id === reportId ? response.data.data : report
+      );
+      
+      // Update selected report if it's the one being modified
+      if (get().selectedReport?.id === reportId) {
+        set({ selectedReport: response.data.data });
+      }
+      
+      set({
+        reports,
+        isLoading: false,
+      });
+      
+      return response.data.data;
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to add tag to report",
+      });
+      throw error;
+    }
+  },
+
+  removeTagFromReport: async (reportId: string, tagId: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await api.delete(`/v1/reports/${reportId}/tag/${tagId}`);
+      
+      // Update the reports array if this report is in it
+      const reports = get().reports.map(report => 
+        report.id === reportId ? response.data.data : report
+      );
+      
+      // Update selected report if it's the one being modified
+      if (get().selectedReport?.id === reportId) {
+        set({ selectedReport: response.data.data });
+      }
+      
+      set({
+        reports,
+        isLoading: false,
+      });
+      
+      return response.data.data;
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to remove tag from report",
+      });
+      throw error;
+    }
+  },
+
+  updateReportTags: async (reportId: string, tags: string[]) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await api.put(`/v1/reports/${reportId}/tags`, { tags });
+      
+      // Update the reports array if this report is in it
+      const reports = get().reports.map(report => 
+        report.id === reportId ? response.data.data : report
+      );
+      
+      // Update selected report if it's the one being modified
+      if (get().selectedReport?.id === reportId) {
+        set({ selectedReport: response.data.data });
+      }
+      
+      set({
+        reports,
+        isLoading: false,
+      });
+      
+      return response.data.data;
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to update report tags",
       });
       throw error;
     }

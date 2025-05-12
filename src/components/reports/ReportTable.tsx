@@ -13,9 +13,12 @@ import {
   Alert,
   Tooltip,
 } from "@mui/material";
-import { MoreVert, Delete, Visibility, Check, Close } from "@mui/icons-material";
+import { MoreVert, Delete, Visibility, Check, Close, Label } from "@mui/icons-material";
 import { useReports } from "@/contexts/ReportsContext";
+import { useTags } from "@/contexts/TagsContext";
 import { useAuthStore } from "@/stores";
+import { useState, useEffect } from "react";
+import type { Tag } from "@/types/tag";
 
 interface ReportTableProps {
   page: number;
@@ -40,6 +43,31 @@ const ReportTable = ({
 }: ReportTableProps) => {
   const { wallet: adminWallet } = useAuthStore();
   const { reports, isLoading, error } = useReports();
+  const { tags: allTags, getMultipleTags } = useTags();
+  const [tagMap, setTagMap] = useState<Record<string, Tag>>({});
+  
+  useEffect(() => {
+    if (reports && reports.length > 0) {
+      // Collect all tag IDs from all reports
+      const allTagIds = reports.flatMap(report => report.tags || []);
+      
+      if (allTagIds.length > 0) {
+        // Fetch all tag data for these IDs
+        getMultipleTags(allTagIds).catch(err => {
+          console.error("Failed to fetch report tags:", err);
+        });
+      }
+    }
+  }, [reports, getMultipleTags]);
+  
+  useEffect(() => {
+    // Create a map of tag ID to tag object for quick lookups
+    const newTagMap: Record<string, Tag> = {};
+    allTags.forEach(tag => {
+      newTagMap[tag.id] = tag;
+    });
+    setTagMap(newTagMap);
+  }, [allTags]);
 
   const isAdmin = adminWallet?.role === "admin";
 
@@ -71,6 +99,21 @@ const ReportTable = ({
       case "rejected":
         return "error";
       case "pending":
+        return "warning";
+      default:
+        return "default";
+    }
+  };
+  
+  const getTagColorByCategory = (category: any) => {
+    if (!category) return "default";
+    
+    switch (category.type) {
+      case "positive":
+        return "success";
+      case "negative":
+        return "error";
+      case "neutral":
         return "warning";
       default:
         return "default";
@@ -109,6 +152,7 @@ const ReportTable = ({
               <TableCell>Reported Wallet</TableCell>
               <TableCell>Reporter</TableCell>
               <TableCell>Description</TableCell>
+              <TableCell>Tags</TableCell>
               <TableCell>Stake Amount</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Created At</TableCell>
@@ -118,13 +162,13 @@ const ReportTable = ({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={8} align="center">
                   <Typography>Loading...</Typography>
                 </TableCell>
               </TableRow>
             ) : reports.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={8} align="center">
                   <Typography>No reports found</Typography>
                 </TableCell>
               </TableRow>
@@ -145,6 +189,36 @@ const ReportTable = ({
                     <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
                       {report.description}
                     </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: 150 }}>
+                      {report.tags && report.tags.length > 0 ? (
+                        report.tags.slice(0, 2).map((tagId, index) => {
+                          const tag = tagMap[tagId];
+                          return (
+                            <Chip 
+                              key={index} 
+                              label={tag ? tag.name : tagId.split('-')[0]}
+                              size="small"
+                              icon={<Label fontSize="small" />}
+                              color={tag ? getTagColorByCategory(tag.category) as any : "default"}
+                              sx={{ maxWidth: '100%' }}
+                            />
+                          );
+                        })
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No tags
+                        </Typography>
+                      )}
+                      {report.tags && report.tags.length > 2 && (
+                        <Chip 
+                          label={`+${report.tags.length - 2}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
+                    </Box>
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2">{report.stakeAmount}</Typography>

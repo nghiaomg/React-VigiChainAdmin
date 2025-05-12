@@ -14,7 +14,7 @@ import {
   Switch,
   Tooltip,
 } from "@mui/material";
-import { MoreVert, Delete } from "@mui/icons-material";
+import { MoreVert, Delete, Edit } from "@mui/icons-material";
 import { useCategories } from "@/contexts/CategoriesContext";
 import { useAuthStore } from "@/stores";
 
@@ -24,6 +24,7 @@ interface CategoryTableProps {
   totalCount: number;
   onPageChange: (event: unknown, newPage: number) => void;
   onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onEdit?: (id: string) => void;
 }
 
 const CategoryTable = ({
@@ -32,6 +33,7 @@ const CategoryTable = ({
   totalCount,
   onPageChange,
   onRowsPerPageChange,
+  onEdit,
 }: CategoryTableProps) => {
   const { wallet: adminWallet } = useAuthStore();
   const {
@@ -64,6 +66,13 @@ const CategoryTable = ({
       await updateCategoryStatus(id, !currentStatus);
     } catch (error) {
       console.error("Failed to update category status:", error);
+    }
+  };
+
+  const handleEdit = (id: string, event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    if (onEdit) {
+      onEdit(id);
     }
   };
 
@@ -202,16 +211,28 @@ const CategoryTable = ({
                   <TableCell align="right">
                     <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                       {isAdmin && (
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={(e) => handleDelete(category.id, e)}
-                            sx={{ mr: 1 }}
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={(e) => handleEdit(category.id, e)}
+                              sx={{ mr: 1 }}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={(e) => handleDelete(category.id, e)}
+                              sx={{ mr: 1 }}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </>
                       )}
                       <IconButton
                         size="small"

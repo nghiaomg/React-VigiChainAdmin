@@ -15,6 +15,7 @@ import {
   Typography,
   IconButton,
   Chip,
+  Autocomplete,
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import { useState, useEffect } from "react";
@@ -22,6 +23,7 @@ import { useReports } from "@/contexts/ReportsContext";
 import { useAuthStore } from "@/stores";
 import type { Report, VerificationData } from "@/stores/reportsStore";
 import { Add, Remove } from "@mui/icons-material";
+import { useTags } from "@/contexts/TagsContext";
 
 interface ReportFormModalProps {
   open: boolean;
@@ -39,11 +41,13 @@ interface FormErrors {
   stakeAmount?: string;
   verificationAction?: string;
   reason?: string;
+  tags?: string;
 }
 
 const ReportFormModal = ({ open, onClose, report }: ReportFormModalProps) => {
   const { wallet } = useAuthStore();
   const { createReport, verifyReport } = useReports();
+  const { tags: allTags, fetchTags } = useTags();
   const [isVerification, setIsVerification] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -56,6 +60,7 @@ const ReportFormModal = ({ open, onClose, report }: ReportFormModalProps) => {
     description: "",
     evidence: [""],
     suggestedTags: [] as string[],
+    tags: [] as string[],
     stakeAmount: 1
   });
 
@@ -87,11 +92,19 @@ const ReportFormModal = ({ open, onClose, report }: ReportFormModalProps) => {
         description: "",
         evidence: [""],
         suggestedTags: [],
+        tags: [],
         stakeAmount: 1
       });
     }
     setErrors({});
   }, [report, wallet?.address, open]);
+
+  useEffect(() => {
+    // Fetch all tags for selection
+    fetchTags(1, 100).catch(err => {
+      console.error("Failed to fetch tags:", err);
+    });
+  }, [fetchTags]);
 
   const handleCreateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -273,20 +286,36 @@ const ReportFormModal = ({ open, onClose, report }: ReportFormModalProps) => {
                   <Typography variant="subtitle2" gutterBottom>
                     Assigned Tags
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {verifyFormData.assignedTags?.map((tag, index) => (
-                      <Chip 
-                        key={index} 
-                        label={tag} 
-                        onDelete={() => {
-                          setVerifyFormData(prev => ({
-                            ...prev,
-                            assignedTags: prev.assignedTags?.filter((_, i) => i !== index)
-                          }));
-                        }}
+                  <Autocomplete
+                    multiple
+                    options={allTags}
+                    getOptionLabel={(option) => option.name}
+                    value={allTags.filter(tag => verifyFormData.assignedTags?.includes(tag.id) || false)}
+                    onChange={(_, newValue) => {
+                      setVerifyFormData(prev => ({
+                        ...prev,
+                        assignedTags: newValue.map(tag => tag.id)
+                      }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        placeholder="Assign tags to this wallet"
                       />
-                    ))}
-                  </Box>
+                    )}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Typography variant="body2">{option.name}</Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                            ({option.category?.name})
+                          </Typography>
+                        </Box>
+                      </li>
+                    )}
+                    disabled={loading}
+                  />
                   <FormHelperText>Tags assigned to the reported wallet</FormHelperText>
                 </Box>
               )}
@@ -383,6 +412,82 @@ const ReportFormModal = ({ open, onClose, report }: ReportFormModalProps) => {
                 )}
               </Box>
               
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Tags
+                </Typography>
+                <Autocomplete
+                  multiple
+                  options={allTags}
+                  getOptionLabel={(option) => option.name}
+                  value={allTags.filter(tag => createFormData.tags.includes(tag.id))}
+                  onChange={(_, newValue) => {
+                    setCreateFormData(prev => ({
+                      ...prev,
+                      tags: newValue.map(tag => tag.id)
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      placeholder="Select tags"
+                      error={!!errors.tags}
+                      helperText={errors.tags}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body2">{option.name}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                          ({option.category?.name})
+                        </Typography>
+                      </Box>
+                    </li>
+                  )}
+                  disabled={loading}
+                />
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Suggested Tags
+                </Typography>
+                <Autocomplete
+                  multiple
+                  options={allTags}
+                  getOptionLabel={(option) => option.name}
+                  value={allTags.filter(tag => createFormData.suggestedTags.includes(tag.id))}
+                  onChange={(_, newValue) => {
+                    setCreateFormData(prev => ({
+                      ...prev,
+                      suggestedTags: newValue.map(tag => tag.id)
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      placeholder="Suggest tags for this wallet"
+                      error={!!errors.suggestedTags}
+                      helperText={errors.suggestedTags}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body2">{option.name}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                          ({option.category?.name})
+                        </Typography>
+                      </Box>
+                    </li>
+                  )}
+                  disabled={loading}
+                />
+              </Box>
+
               <TextField
                 fullWidth
                 type="number"

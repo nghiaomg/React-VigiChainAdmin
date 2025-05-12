@@ -156,6 +156,7 @@ const CategoriesPage = () => {
           totalCount={pagination.total}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          onEdit={handleEditCategory}
         />
       </Card>
 
