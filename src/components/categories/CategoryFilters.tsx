@@ -13,7 +13,6 @@ const CategoryFilters = () => {
 
   const handleSortChange = (field: string) => {
     if (filters.sortBy === field) {
-      // Toggle sort order if the same field is selected
       setFilters({
         sortOrder: filters.sortOrder === 'asc' ? 'desc' : 'asc',
       });
