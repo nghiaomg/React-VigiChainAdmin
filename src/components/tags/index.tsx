@@ -18,23 +18,21 @@ const TagsPage = () => {
     deleteTag,
     pagination,
     selectedTag,
+    filters,
     setActionMenuAnchor: setContextActionMenuAnchor,
     setSelectedTagId: setContextSelectedTagId,
   } = useTags();
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [actionMenuAnchor, setActionMenuAnchor] = useState<null | HTMLElement>(null);
+  const [actionMenuAnchor, setActionMenuAnchor] = useState<null | HTMLElement>(
+    null
+  );
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [tagToEdit, setTagToEdit] = useState<Tag | null>(null);
 
-  useEffect(() => {
-    fetchTags(page + 1, rowsPerPage);
-  }, [page, rowsPerPage, fetchTags]);
-
-  // Keep local and context state in sync
   useEffect(() => {
     setContextActionMenuAnchor(actionMenuAnchor);
   }, [actionMenuAnchor, setContextActionMenuAnchor]);
@@ -47,7 +45,9 @@ const TagsPage = () => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const newRowsPerPage = parseInt(event.target.value, 10);
     setRowsPerPage(newRowsPerPage);
     setPage(0);
@@ -94,7 +94,7 @@ const TagsPage = () => {
   const handleCloseFormModal = () => {
     setFormModalOpen(false);
     setTagToEdit(null);
-    // Refresh the tags list after adding/editing
+    
     fetchTags(page + 1, rowsPerPage);
   };
 
@@ -146,7 +146,7 @@ const TagsPage = () => {
             Registered Tags
           </Typography>
 
-          <TagFilters />
+          <TagFilters onAddTag={handleAddTag} />
         </Box>
 
         <Divider />
@@ -160,22 +160,6 @@ const TagsPage = () => {
           onEdit={handleEditTag}
         />
       </Card>
-
-      {isAdmin && (
-        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mb: 4 }}>
-          <Button variant="outlined" startIcon={<FilterList />}>
-            Export Data
-          </Button>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            startIcon={<Add />}
-            onClick={handleAddTag}
-          >
-            Add Tag
-          </Button>
-        </Box>
-      )}
 
       <TagActionMenu
         anchorEl={actionMenuAnchor}
@@ -201,4 +185,4 @@ const TagsPage = () => {
   );
 };
 
-export default TagsPage; 
+export default TagsPage;

@@ -96,6 +96,11 @@ const useTagsStore = create<TagsState>((set, get) => ({
         params.category = get().category;
       }
 
+      // Check if category filter is set and use it as categoryId
+      if (get().filters.category) {
+        params.categoryId = get().filters.category;
+      }
+
       if (get().filters.search) {
         params.search = get().filters.search;
       }

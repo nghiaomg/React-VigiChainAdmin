@@ -16,6 +16,7 @@ import {
 import { MoreVert, Delete, Edit } from "@mui/icons-material";
 import { useTags } from "@/contexts/TagsContext";
 import { useAuthStore } from "@/stores";
+import React from "react";
 
 interface TagTableProps {
   page: number;
@@ -35,16 +36,37 @@ const TagTable = ({
   onEdit,
 }: TagTableProps) => {
   const { wallet: adminWallet } = useAuthStore();
-  const { tags, isLoading, error, setActionMenuAnchor, setSelectedTagId, deleteTag } = useTags();
+  const {
+    tags,
+    isLoading,
+    error,
+    setActionMenuAnchor,
+    setSelectedTagId,
+    deleteTag,
+    fetchTags,
+    filters,
+  } = useTags();
+
+  // Effect to fetch tags when page or rowsPerPage changes
+  React.useEffect(() => {
+    // fetchTags will automatically use the filters from the store
+    fetchTags(page + 1, rowsPerPage);
+  }, [page, rowsPerPage, filters.category, filters.search, fetchTags]);
 
   const isAdmin = adminWallet?.role === "admin";
 
-  const handleOpenActionMenu = (event: React.MouseEvent<HTMLElement>, id: string) => {
+  const handleOpenActionMenu = (
+    event: React.MouseEvent<HTMLElement>,
+    id: string
+  ) => {
     setActionMenuAnchor(event.currentTarget);
     setSelectedTagId(id);
   };
 
-  const handleDelete = async (id: string, event: React.MouseEvent<HTMLElement>) => {
+  const handleDelete = async (
+    id: string,
+    event: React.MouseEvent<HTMLElement>
+  ) => {
     event.stopPropagation();
     if (window.confirm("Are you sure you want to delete this tag?")) {
       try {
@@ -62,7 +84,7 @@ const TagTable = ({
     }
   };
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category?: string) => {
     switch (category) {
       case "positive":
         return "success";
@@ -77,13 +99,23 @@ const TagTable = ({
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short', 
-      day: '2-digit', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
+  };
+
+  const handleLocalPageChange = (event: unknown, newPage: number) => {
+    onPageChange(event, newPage);
+    // API call handled by the useEffect
+  };
+
+  const handleLocalRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onRowsPerPageChange(event);
+    // API call handled by the useEffect
   };
 
   if (error) {
@@ -126,7 +158,9 @@ const TagTable = ({
               tags.map((tag) => (
                 <TableRow key={tag.id} hover>
                   <TableCell>
-                    <Typography variant="body2">{tag.name}</Typography>
+                    <Typography variant="body2">
+                      {tag?.name || "N/A"}
+                    </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" color="text.secondary">
@@ -135,8 +169,8 @@ const TagTable = ({
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={tag.category.name}
-                      color={getCategoryColor(tag.category.type) as any}
+                      label={tag.category?.name || "Uncategorized"}
+                      color={getCategoryColor(tag.category?.type) as any}
                       size="small"
                     />
                   </TableCell>
@@ -203,13 +237,13 @@ const TagTable = ({
         component="div"
         count={totalCount}
         page={page}
-        onPageChange={onPageChange}
+        onPageChange={handleLocalPageChange}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={onRowsPerPageChange}
+        onRowsPerPageChange={handleLocalRowsPerPageChange}
         rowsPerPageOptions={[5, 10, 25]}
       />
     </Box>
   );
 };
 
-export default TagTable; 
+export default TagTable;

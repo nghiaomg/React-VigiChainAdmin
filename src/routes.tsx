@@ -9,6 +9,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import TagsPage from './pages/Tags';
 import CategoriesPage from '@/pages/Categories';
 import ReportsPage from '@/pages/Reports';
+import ChainsPage from '@/pages/Chains';
 
 const RootLayout = () => {
   return (
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
           {
             path: 'reports',
             element: <ReportsPage />,
+          },
+          {
+            path: 'chains',
+            element: <ChainsPage />,
           },
         ],
       },
